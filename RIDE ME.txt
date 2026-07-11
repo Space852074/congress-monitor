@@ -1,0 +1,15 @@
+J:\Congress Monitor\
+│
+├─ active_files\
+│   ├─ core\
+│   │   ├─ scraper_cms.py        ✅ China 用
+│   │   └─ scraper_asp.py        ✅ Agriculture 用
+│   ├─ committees\
+│   │   └─ house\
+│   │       ├─ china.py          ✅ China 配置
+│   │       └─ agriculture.py    ✅ Agriculture 配置
+│   ├─ run_house.py              ✅ 执行抓取任务总调度
+│   ├─ notion_writer.py          ✅ Notion 数据写入与去重
+│   ├─ main_monitor.py           ✅ 主要抓取与数据处理
+│   ├─ logger_utils.py           ✅ 日志记录与错误处理
+│   └─ config.py                 ✅ 项目配置文件（可选）

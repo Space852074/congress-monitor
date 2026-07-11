@@ -1,0 +1,27 @@
+# Local credentials
+config.local.env
+.env
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.bak
+
+# Runtime output
+logs/
+data/
+*.log
+q_test.txt
+senate_commerce_output.json
+
+# PyInstaller output
+build/
+dist/
+*.spec
+*.exe
+
+# Legacy files containing credentials or local shell artifacts
+CDK.txt
+nul'

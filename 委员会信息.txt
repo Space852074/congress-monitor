@@ -1,0 +1,295 @@
+1、抓取最近10天
+2、单页统计：
+    - valid_count
+    - old_count
+    - kept_count
+3、如果：
+    valid_count > 0 且 kept_count == 0 且 old_count == valid_count
+    → 本页 = 全旧页
+4、连续2页全旧 → break
+*****************************************************************************************
+
+委员会名称：Select Committee on China
+
+院别：House
+
+页面1：https://chinaselectcommittee.house.gov/documents/policy-recommendations
+页面2：https://chinaselectcommittee.house.gov/documents/reports
+页面3：https://chinaselectcommittee.house.gov/committee-activity/hearings/all
+页面4：https://chinaselectcommittee.house.gov/media/letters
+页面5：https://chinaselectcommittee.house.gov/committee-activity/bills
+页面6：https://chinaselectcommittee.house.gov/media/press-releases
+
+*****************************************************************************************
+
+委员会名称：appropriations
+
+院别：House
+
+网站网址：https://appropriations.house.gov/
+
+页面1：https://appropriations.house.gov/news/press-releases
+页面2：https://appropriations.house.gov/news/remarks
+页面3：https://appropriations.house.gov/schedule/hearings
+页面4：https://appropriations.house.gov/schedule/markups
+页面5：https://appropriations.house.gov/schedule/business-meetings
+
+
+*****************************************************************************************
+*****************************************************************************************
+
+委员会名称：foreignaffairs
+
+院别：House
+
+页面1：https://foreignaffairs.house.gov/news/press-releases
+页面2：https://foreignaffairs.house.gov/committee-activity/hearings/all
+页面3：https://foreignaffairs.house.gov/committee-activity/markups/all
+
+*****************************************************************************************
+
+委员会名称：armedservices
+
+院别：House
+
+页面1：https://armedservices.house.gov/news/documentquery.aspx?DocumentTypeID=27
+页面2：https://armedservices.house.gov/calendar/?EventTypeID=214
+
+*****************************************************************************************
+
+委员会名称：agriculture
+
+院别：House
+
+页面1：https://agriculture.house.gov/news/documentquery.aspx?DocumentTypeID=27
+
+*****************************************************************************************
+
+
+委员会名称：energycommerce
+
+院别：House
+
+页面1：https://energycommerce.house.gov/news/press-release
+https://energycommerce.house.gov/news/letter
+https://energycommerce.house.gov/news/blog
+https://energycommerce.house.gov/news/in-the-news
+https://energycommerce.house.gov/news/communications-technology
+https://energycommerce.house.gov/news/commerce-manufacturing-and-trade
+https://energycommerce.house.gov/news/energy
+https://energycommerce.house.gov/news/environment-1
+https://energycommerce.house.gov/news/health
+https://energycommerce.house.gov/news/oversight-investigations
+https://energycommerce.house.gov/news/hearings
+https://energycommerce.house.gov/news/markups
+https://energycommerce.house.gov/news/on-the-house-floor
+https://energycommerce.house.gov/news/lives-worth-living
+https://energycommerce.house.gov/news/letter-communications-and-technology
+https://energycommerce.house.gov/news/letter-commerce-manufacturing-and-trade
+https://energycommerce.house.gov/news/letter-energy
+https://energycommerce.house.gov/news/letter-environment
+https://energycommerce.house.gov/news/letter-health
+https://energycommerce.house.gov/news/letter-oversight-and-investigations
+
+
+
+*****************************************************************************************
+
+委员会名称：foreignaffairs
+
+院别：House
+
+页面1：https://financialservices.house.gov/calendar/?EventTypeID=309
+页面2：https://financialservices.house.gov/calendar/?EventTypeID=311
+页面3：https://financialservices.house.gov/news/documentquery.aspx?DocumentTypeID=2092
+页面4：https://financialservices.house.gov/news/documentquery.aspx?DocumentTypeID=2091
+页面5：https://financialservices.house.gov/news/documentquery.aspx?DocumentTypeID=2094
+
+*****************************************************************************************
+委员会名称：homeland
+
+院别：House
+
+页面1：https://homeland.house.gov/hearings/
+页面2：https://homeland.house.gov/press/
+页面3：https://homeland.house.gov/letters/
+页面4：https://homeland.house.gov/border-startling-stats/
+
+
+
+
+
+*****************************************************************************************
+
+委员会名称：Agriculture, Nutrition, and Forestry
+院别：Senate
+majoritynews：https://www.agriculture.senate.gov/newsroom/majority-news
+minoritynews：https://www.agriculture.senate.gov/newsroom/minority-news
+hearings：https://www.agriculture.senate.gov/hearings
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：appropriations
+院别：Senate
+主新闻页：https://www.appropriations.senate.gov/news/majority
+补充新闻页（如有）：https://www.appropriations.senate.gov/news/minority
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：armed-services
+院别：Senate
+主新闻页：https://www.armed-services.senate.gov/press-releases
+补充新闻页（如有）：
+是否分 majority/minority：无
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：budget
+院别：Senate
+主新闻页：https://www.budget.senate.gov/chairman/newsroom/press/?type=press_release
+补充新闻页（如有）：https://www.budget.senate.gov/ranking-member/newsroom
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：commerce
+院别：Senate
+主新闻页：https://www.commerce.senate.gov/republican-news
+补充新闻页（如有）：https://www.commerce.senate.gov/democratic-news
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：energy
+院别：Senate
+主新闻页：https://www.energy.senate.gov/republican-news
+补充新闻页（如有）：https://www.energy.senate.gov/democratic-news
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：Environment and Public Works 
+院别：Senate
+主新闻页：https://www.epw.senate.gov/public/index.cfm/press-releases-republican
+补充新闻页（如有）：https://www.epw.senate.gov/public/index.cfm/press-releases-democratic
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：finance
+院别：Senate
+主新闻页：https://www.finance.senate.gov/chairmans-news
+补充新闻页（如有）：https://www.finance.senate.gov/ranking-members-news
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：foreign
+院别：Senate
+主新闻页：https://www.foreign.senate.gov/press/chair
+补充新闻页（如有）：https://www.foreign.senate.gov/press/ranking
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：Health, Education, Labor and Pensions
+院别：Senate
+主新闻页：https://www.help.senate.gov/chair/newsroom
+补充新闻页（如有）：https://www.help.senate.gov/ranking/newsroom
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：Homeland Security and Governmental Affairs
+院别：Senate
+主新闻页：https://www.hsgac.senate.gov/media/majority-news/?jsf=jet-engine:press-list&meta=congress:119
+补充新闻页（如有）：https://www.hsgac.senate.gov/media/minority-news/?jsf=jet-engine:press-list&meta=congress:119
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：indian
+院别：Senate
+主新闻页：https://www.indian.senate.gov/newsroom/republican-news/
+补充新闻页（如有）：https://www.indian.senate.gov/newsroom/democratic-news/
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：judiciary
+院别：Senate
+主新闻页：https://www.judiciary.senate.gov/press/majority
+补充新闻页（如有）：https://www.judiciary.senate.gov/press/minority
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：rules
+院别：Senate
+主新闻页：https://www.rules.senate.gov/news/majority-news
+补充新闻页（如有）：https://www.rules.senate.gov/news/minority-news
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称： Small Business and Entrepreneurship
+院别：Senate
+主新闻页：https://www.sbc.senate.gov/public/index.cfm/republicanpressreleases
+补充新闻页（如有）：https://www.sbc.senate.gov/public/index.cfm/democraticpressreleases
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：veterans
+院别：Senate
+主新闻页：https://www.veterans.senate.gov/majority-news
+补充新闻页（如有）：https://www.veterans.senate.gov/minority-news
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：ethics
+院别：Senate
+主新闻页：https://www.ethics.senate.gov/public/index.cfm/pressreleases
+补充新闻页（如有）：
+是否分 majority/minority：无
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：intelligence
+院别：Senate
+主新闻页：https://www.intelligence.senate.gov/reports-publications/press-releases/
+补充新闻页（如有）：
+是否分 majority/minority：无
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
+委员会名称：aging
+院别：Senate
+主新闻页：https://www.aging.senate.gov/press-room/majority
+补充新闻页（如有）：https://www.aging.senate.gov/press-room/minority
+是否分 majority/minority：是
+希望抓取类型：只抓新闻稿
+时间范围：最近10天
+备注：党派要区分，写入 Notion 时显示 🐘共和党 / 🐎民主党
+
