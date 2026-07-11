@@ -39,6 +39,7 @@ HOUSE_TRANSLATE = {
     "Armed Services": "美国众议院军事委员会",
     "Budget": "美国众议院预算委员会",
     "Education and the Workforce": "美国众议院教育和劳动力委员会",
+    "Education and Workforce": "美国众议院教育和劳动力委员会",
     "Energy and Commerce": "美国众议院能源和商业委员会",
     "Ethics": "美国众议院道德委员会",
     "Financial Services": "美国众议院金融服务委员会",

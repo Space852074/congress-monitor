@@ -10,6 +10,8 @@ from urllib.parse import urljoin, urlparse, urlunparse
 import requests
 from bs4 import BeautifulSoup, NavigableString
 
+from committee_translate import get_committee_cn
+
 
 TIME_WINDOW_DAYS = 10
 LOOKAHEAD_DAYS = 60
@@ -112,10 +114,11 @@ def build_item(
     link: str,
     source: str,
 ) -> dict:
+    committee_cn = get_committee_cn(committee_en, chamber=chamber)
     return {
         "committee_en": committee_en,
-        "committee_cn": committee_en,
-        "committee_zh": committee_en,
+        "committee_cn": committee_cn,
+        "committee_zh": committee_cn,
         "committee": committee_en,
         "chamber": chamber,
         "category_en": "Hearing",
