@@ -67,7 +67,7 @@ exit /b 1
 if defined PYTHON_CMD exit /b 0
 if not exist "%~1" exit /b 0
 "%~1" -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>nul
-if "%ERRORLEVEL%"=="0" set "PYTHON_CMD=\"%~1\""
+if "%ERRORLEVEL%"=="0" set "PYTHON_CMD="%~1""
 exit /b 0
 
 :try_python_cmd
