@@ -302,7 +302,7 @@ def extract_title(soup: BeautifulSoup) -> str:
 def extract_date_from_soup(soup: BeautifulSoup):
     candidates = []
 
-    for tag in soup.find_all(["time", "span", "div", "p", "strong", "li"]):
+    for tag in soup.find_all(["title", "time", "span", "div", "p", "strong", "li"]):
         txt = clean_text(tag.get_text(" ", strip=True))
         if not txt:
             continue
@@ -311,6 +311,7 @@ def extract_date_from_soup(soup: BeautifulSoup):
             re.search(r"Published:\s*[A-Z][a-z]+ \d{1,2}, \d{4}", txt)
             or re.search(r"[A-Z][a-z]+ \d{1,2}, \d{4}", txt)
             or re.search(r"\d{1,2}/\d{1,2}/\d{4}", txt)
+            or re.search(r"\d{4}-\d{1,2}-\d{1,2}", txt)
             or re.search(r"\b[A-Z][a-z]{2}\s+\d{1,2}\s+\d{1,2}:\d{2}\s*[AP]M\b", txt)
         ):
             candidates.append(txt)
@@ -453,7 +454,7 @@ def collect_detail_links(list_url: str, section: dict) -> list[dict]:
 
             block = _nearest_block(a)
             block_text = clean_text(block.get_text(" ", strip=True)) if block else title
-            list_dt = parse_date(block_text)
+            list_dt = parse_date(title)
 
             norm = normalize_link(full_url)
             if norm in seen:
@@ -769,7 +770,7 @@ def scrape_section(section: dict, existing_links=None) -> list[dict]:
                 continue
 
             detail_title = extract_title(soup) or title_from_list
-            detail_dt = parse_date(detail_title) or list_dt or extract_date_from_soup(soup)
+            detail_dt = parse_date(detail_title) or extract_date_from_soup(soup) or list_dt
             detail_summary = extract_summary(soup, limit=200) or summary_from_list
 
             if not detail_title or not detail_dt:
