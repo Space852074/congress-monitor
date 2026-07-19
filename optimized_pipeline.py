@@ -123,6 +123,11 @@ def looks_untranslated(source: str, translated: str) -> bool:
 
 
 def build_item_key(item: dict) -> str:
+    if is_hearing_item(item):
+        merge_key = hearing_merge_key(item)
+        if merge_key:
+            return f"hearing|{merge_key}"
+
     date = norm_text(item.get("sort_date") or item.get("date") or "")
     title = norm_text(item.get("title") or "")
     committee = norm_text(
@@ -170,7 +175,11 @@ def normalize_hearing_committee(item: dict) -> str:
 
 def normalize_hearing_title(title: str) -> str:
     title = norm_text(title)
-    title = re.sub(r"^(?:hearing|hearings|meeting)\s*[:;-]\s*", "", title)
+    title = re.sub(
+        r"^(?:(?:field|full committee|subcommittee)\s+)?(?:hearing|hearings|meeting)\s*[:;-]\s*",
+        "",
+        title,
+    )
     title = title.replace("&", " and ")
     title = re.sub(r"[^a-z0-9\u3400-\u9fff]+", " ", title)
     return norm_text(title)
