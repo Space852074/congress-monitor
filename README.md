@@ -9,7 +9,7 @@
 - 对同一场听证会进行合并，保留多个官方来源链接。
 - 自动翻译标题和摘要；翻译或抓取失败时自动重试。
 - 写入前按链接和唯一键去重，避免 Notion 产生重复页面。
-- 可打包为单文件 Windows 程序，无需日常手动运行 Python。
+- 提供 Windows 批处理入口，自动选择可用的 Python 环境。
 
 ## 首次配置
 
@@ -24,25 +24,23 @@
 Windows 用户直接双击：
 
 ```text
-CongressMonitor.exe
+run_all.bat
 ```
-
-也可以运行 `run_all.bat`，它使用本地 Python 环境执行同一流程。
 
 ## 命令行参数
 
 ```powershell
 # 只抓取众议院
-.\CongressMonitor.exe --chamber house
+.\run_all.bat --chamber house
 
 # 抓取但不读取或写入 Notion
-.\CongressMonitor.exe --no-notion
+.\run_all.bat --no-notion
 
 # 读取 Notion 并抓取，但不写入新页面
-.\CongressMonitor.exe --dry-run
+.\run_all.bat --dry-run
 
 # 保留英文，不调用翻译服务
-.\CongressMonitor.exe --skip-translate
+.\run_all.bat --skip-translate
 ```
 
 ## 从源码运行
@@ -55,10 +53,6 @@ python -m venv .venv
 .\.venv\Scripts\python.exe run_all.py
 ```
 
-## 重新生成 EXE
-
-代码改动后，双击 `build_exe.bat`。构建结果会生成在 `dist\CongressMonitor.exe`，可复制到项目根目录供日常使用。
-
 ## 项目结构
 
 ```text
@@ -68,7 +62,7 @@ optimized_pipeline.py 并发调度、合并、翻译重试和 Notion 写入
 notion_writer.py     Notion API 写入器
 translator.py        中文翻译器
 run_all.py           Python 入口
-CongressMonitor.exe  打包后的 Windows 入口（不提交到 Git）
+run_all.bat          Windows 日常启动入口
 ```
 
 ## 安全说明
