@@ -43,6 +43,18 @@ run_all.bat
 .\run_all.bat --skip-translate
 ```
 
+## 自动定时运行
+
+以管理员身份运行以下命令，可安装或更新 Windows 计划任务：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install_schedule.ps1
+```
+
+计划任务名为 `Congress Monitor Twice Daily`，每天 `00:00` 和 `12:00` 调用
+`run_all.bat`。运行日志保存在 `logs\scheduled_run.log`。任务采用当前用户的登录会话，
+电脑锁屏时可以运行；电脑关机或用户注销时无法运行，恢复可用后会补跑错过的任务。
+
 ## 从源码运行
 
 需要 Python 3.9 或更高版本：
