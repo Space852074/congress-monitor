@@ -56,7 +56,7 @@ python -m venv .venv
 ## 云端定时运行
 
 GitHub Actions 工作流 `.github/workflows/cloud-scrape.yml` 每天按台北时间
-`00:00` 和 `12:00` 自动运行，也支持在 Actions 页面手动启动。
+`00:20`、`06:20` 和 `12:20` 自动运行，也支持在 Actions 页面手动启动。
 
 仓库需要配置以下 Actions Secrets：
 
