@@ -5,7 +5,7 @@
 ## 功能
 
 - 并发抓取众议院和参议院委员会公开信息。
-- 汇集 `senate.gov`、`house.gov` 与 `docs.house.gov` 的官方听证会预告。
+- 抓取众议院和参议院各委员会网站发布的听证会与新闻信息。
 - 对同一场听证会进行合并，保留多个官方来源链接。
 - 自动翻译标题和摘要；翻译或抓取失败时自动重试。
 - 写入前按链接和唯一键去重，避免 Notion 产生重复页面。
@@ -43,18 +43,6 @@ run_all.bat
 .\run_all.bat --skip-translate
 ```
 
-## 自动定时运行
-
-以管理员身份运行以下命令，可安装或更新 Windows 计划任务：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install_schedule.ps1
-```
-
-计划任务名为 `Congress Monitor Twice Daily`，每天 `00:00` 和 `12:00` 调用
-`run_all.bat`。运行日志保存在 `logs\scheduled_run.log`。任务采用当前用户的登录会话，
-电脑锁屏时可以运行；电脑关机或用户注销时无法运行，恢复可用后会补跑错过的任务。
-
 ## 从源码运行
 
 需要 Python 3.9 或更高版本：
@@ -64,6 +52,19 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe run_all.py
 ```
+
+## 云端定时运行
+
+GitHub Actions 工作流 `.github/workflows/cloud-scrape.yml` 每天按台北时间
+`00:00` 和 `12:00` 自动运行，也支持在 Actions 页面手动启动。
+
+仓库需要配置以下 Actions Secrets：
+
+- `NOTION_TOKEN`：Notion Integration Token。
+- `NOTION_DATABASE_ID`：目标 Notion 数据库 ID。
+
+云端任务直接执行 `python run_all.py`，抓取结果仍写入 Notion。GitHub Actions
+的定时任务可能因平台繁忙而延迟几分钟，并不保证整点立即开始。
 
 ## 项目结构
 

@@ -8,13 +8,6 @@ set "ROOT_DIR=%CD%"
 set "PYTHON_CMD="
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
-set "SCHEDULED_RUN=0"
-set "RUN_ARGS=%*"
-
-if /I "%~1"=="--scheduled" (
-  set "SCHEDULED_RUN=1"
-  set "RUN_ARGS="
-)
 
 call :try_python_file "%ROOT_DIR%\.venv\Scripts\python.exe"
 if defined PYTHON_CMD goto found_python
@@ -35,7 +28,7 @@ call :try_python_cmd "python"
 if defined PYTHON_CMD goto found_python
 
 echo No usable Python 3.9+ interpreter was found.
-if "%SCHEDULED_RUN%"=="0" pause
+pause
 exit /b 1
 
 :found_python
@@ -50,15 +43,15 @@ if /I "%~1"=="--check" goto self_check
 
 echo.
 echo [Start]
-%PYTHON_CMD% "%ROOT_DIR%\run_all.py" %RUN_ARGS%
+%PYTHON_CMD% "%ROOT_DIR%\run_all.py" %*
 set "EXIT_CODE=%ERRORLEVEL%"
 
 echo.
 echo ====================
-if "%EXIT_CODE%"=="0" echo Finished.
-if not "%EXIT_CODE%"=="0" echo Failed with exit code %EXIT_CODE%.
+if "%EXIT_CODE%"=="0" echo Finished. Press any key to exit.
+if not "%EXIT_CODE%"=="0" echo Failed with exit code %EXIT_CODE%. Press any key to exit.
 echo ====================
-if "%SCHEDULED_RUN%"=="0" pause
+pause
 exit /b %EXIT_CODE%
 
 :self_check
@@ -67,7 +60,7 @@ exit /b 0
 
 :fatal_cd
 echo Cannot enter script directory: %~dp0
-if "%SCHEDULED_RUN%"=="0" pause
+pause
 exit /b 1
 
 :try_python_file

@@ -23,7 +23,6 @@ except Exception:
 import notion_writer
 import run_house
 import run_senate
-from core.central_hearings import run_house_hearing_notices, run_senate_hearing_notices
 from committees.house.science import run_committee as house_science_committee
 from logger_utils import log_failure, log_start, log_success
 from notion_writer import add_news, get_existing_item_keys, get_existing_links
@@ -66,7 +65,6 @@ HOUSE_TASKS: list[CommitteeTask] = [
     CommitteeTask("House", "Veterans Affairs Committee", run_house.veterans_committee),
     CommitteeTask("House", "Ways and Means Committee", run_house.waysandmeans_committee),
     CommitteeTask("House", "Intelligence Committee", run_house.intelligence_committee),
-    CommitteeTask("House", "House Central Hearing Notices", run_house_hearing_notices),
 ]
 
 
@@ -89,7 +87,6 @@ SENATE_TASKS: list[CommitteeTask] = [
     CommitteeTask("Senate", "Small Business Committee", run_senate.sbc_committee),
     CommitteeTask("Senate", "Aging Committee", run_senate.aging_committee),
     CommitteeTask("Senate", "Veterans Committee", run_senate.veterans_committee),
-    CommitteeTask("Senate", "Senate Central Hearing Notices", run_senate_hearing_notices),
 ]
 
 

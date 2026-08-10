@@ -1,0 +1,57 @@
+name: Cloud Scheduled Scrape
+
+on:
+  schedule:
+    # GitHub cron uses UTC. These are 12:00 and 00:00 in Asia/Taipei.
+    - cron: "0 4 * * *"
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: congress-monitor-cloud-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+      TZ: Asia/Taipei
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Validate Notion secrets
+        shell: bash
+        run: |
+          test -n "$NOTION_TOKEN" || { echo "NOTION_TOKEN is not configured"; exit 1; }
+          test -n "$NOTION_DATABASE_ID" || { echo "NOTION_DATABASE_ID is not configured"; exit 1; }
+
+      - name: Run Congress Monitor
+        run: python run_all.py
+
+      - name: Upload run logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: congress-monitor-logs-${{ github.run_id }}
+          path: logs/
+          if-no-files-found: ignore
+          retention-days: 14
