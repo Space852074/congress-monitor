@@ -15,12 +15,6 @@ if defined PYTHON_CMD goto found_python
 call :try_python_file "%ROOT_DIR%\venv\Scripts\python.exe"
 if defined PYTHON_CMD goto found_python
 
-call :try_python_file "%ROOT_DIR%\..\active_files\.venv\Scripts\python.exe"
-if defined PYTHON_CMD goto found_python
-
-call :try_python_file "%ROOT_DIR%\..\active_files\venv\Scripts\python.exe"
-if defined PYTHON_CMD goto found_python
-
 call :try_python_cmd "py -3"
 if defined PYTHON_CMD goto found_python
 
