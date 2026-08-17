@@ -2,8 +2,9 @@ name: Cloud Scheduled Scrape
 
 on:
   schedule:
-    # GitHub cron uses UTC. These are 12:20, 00:20, and 06:20 in Asia/Taipei.
+    # GitHub cron uses UTC. These are 12:20, 18:20, 00:20, and 06:20 in Asia/Taipei.
     - cron: "20 4 * * *"
+    - cron: "20 10 * * *"
     - cron: "20 16 * * *"
     - cron: "20 22 * * *"
   workflow_dispatch:
