@@ -49,14 +49,13 @@ def _split_for_translation(text: str) -> list[str]:
     if not value:
         return []
 
-    parts = re.split(r"([.!?;。！？；\n])", value)
-    segments: list[str] = []
-    for index in range(0, len(parts), 2):
-        chunk = parts[index] or ""
-        separator = parts[index + 1] if index + 1 < len(parts) else ""
-        combined = (chunk + separator).strip()
-        if combined:
-            segments.append(combined)
+    # Split only after sentence-ending whitespace so abbreviations such as
+    # "U.S." and "R.I." remain intact.
+    segments = [
+        part.strip()
+        for part in re.split(r"(?<=[.!?;。！？；])\s+|\n+", value)
+        if part.strip()
+    ]
 
     refined: list[str] = []
     for segment in segments:
@@ -173,7 +172,15 @@ def _translate_one_segment(segment: str, target: str) -> str:
             try:
                 _throttle()
                 translated = provider(segment, target)
-                if translated and translated.strip() != segment:
+                normalized_source = " ".join(segment.lower().split())
+                normalized_result = " ".join(translated.lower().split())
+                meaningful_words = re.findall(r"[A-Za-z]{3,}", segment)
+                unchanged_sentence = (
+                    normalized_result == normalized_source
+                    and len(meaningful_words) >= 3
+                    and not re.search(r"[\u3400-\u9fff]", segment)
+                )
+                if translated and not unchanged_sentence:
                     _cache_put(segment, target, translated)
                     return translated
                 errors.append(f"{provider.__name__}: unchanged response")
