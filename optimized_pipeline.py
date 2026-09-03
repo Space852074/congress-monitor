@@ -580,9 +580,11 @@ def write_items(
             if translation_failures:
                 translation_failed_after_retry += 1
                 print(
-                    f"[Translate] still failed after retry, writing original/partial text: "
+                    f"[Translate] still failed after retry; not writing untranslated text: "
                     f"{title} ({', '.join(translation_failures)})"
                 )
+                failed += 1
+                continue
 
             outcome = write_prepared_item(
                 prepared,

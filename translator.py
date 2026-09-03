@@ -1,128 +1,206 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import hashlib
+import os
 import re
+import sqlite3
+import threading
+import time
+from pathlib import Path
 
 import requests
+from bs4 import BeautifulSoup
 
 
 _DEFAULT_TARGET = "zh-CN"
 _MAX_SEGMENT_CHARS = 400
 _MIN_SUMMARY_CHARS = 80
+_REQUEST_INTERVAL = float(os.getenv("TRANSLATION_REQUEST_INTERVAL", "0.45"))
+_MAX_ATTEMPTS = max(1, int(os.getenv("TRANSLATION_MAX_ATTEMPTS", "3")))
+_CACHE_PATH = Path(
+    os.getenv(
+        "CONGRESS_TRANSLATION_CACHE",
+        str(Path(__file__).resolve().parent / "logs" / "translation_cache.sqlite3"),
+    )
+)
+
+_SESSION = requests.Session()
+_SESSION.headers.update(
+    {
+        "Accept-Language": "en-US,en;q=0.9",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 Chrome/124.0 Safari/537.36"
+        ),
+    }
+)
+_REQUEST_LOCK = threading.Lock()
+_CACHE_LOCK = threading.Lock()
+_LAST_REQUEST_AT = 0.0
+
+
+class TranslationError(RuntimeError):
+    pass
 
 
 def _split_for_translation(text: str) -> list[str]:
-    """
-    按句号/分号/换行等切分，尽量保持标点归属到对应片段。
-    """
-    s = (text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
-    if not s:
+    value = (text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not value:
         return []
 
-    # 先按“句子/分隔符”切分，同时保留分隔符
-    parts = re.split(r"([。！？!?;；\.\n])", s)
+    parts = re.split(r"([.!?;。！？；\n])", value)
     segments: list[str] = []
-    buf = ""
-    for i in range(0, len(parts), 2):
-        chunk = parts[i] or ""
-        sep = parts[i + 1] if i + 1 < len(parts) else ""
-        buf = (chunk + sep).strip()
-        if buf:
-            segments.append(buf)
+    for index in range(0, len(parts), 2):
+        chunk = parts[index] or ""
+        separator = parts[index + 1] if index + 1 < len(parts) else ""
+        combined = (chunk + separator).strip()
+        if combined:
+            segments.append(combined)
 
-    # 再处理过长片段：按逗号/空格近似二次切分
     refined: list[str] = []
-    for seg in segments:
-        if len(seg) <= _MAX_SEGMENT_CHARS:
-            refined.append(seg)
+    for segment in segments:
+        if len(segment) <= _MAX_SEGMENT_CHARS:
+            refined.append(segment)
             continue
-        # 优先按中文/英文逗号切，再按空格切
-        subparts = re.split(r"([,，])", seg)
-        cur = ""
-        for i in range(0, len(subparts), 2):
-            a = subparts[i] or ""
-            comma = subparts[i + 1] if i + 1 < len(subparts) else ""
-            candidate = (a + comma).strip()
-            if not candidate:
-                continue
-            if len(cur) + len(candidate) <= _MAX_SEGMENT_CHARS:
-                cur = (cur + candidate).strip()
+
+        words = segment.split()
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if current and len(candidate) > _MAX_SEGMENT_CHARS:
+                refined.append(current)
+                current = word
             else:
-                if cur:
-                    refined.append(cur)
-                cur = candidate
-        if cur:
-            refined.append(cur)
+                current = candidate
+        if current:
+            refined.append(current)
 
     return refined
 
 
+def _cache_key(segment: str, target: str) -> str:
+    raw = f"{target}\0{segment}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _cache_connect() -> sqlite3.Connection:
+    _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(_CACHE_PATH, timeout=10)
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS translations ("
+        "cache_key TEXT PRIMARY KEY, source TEXT NOT NULL, target TEXT NOT NULL, "
+        "translated TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+    )
+    return connection
+
+
+def _cache_get(segment: str, target: str) -> str:
+    try:
+        with _CACHE_LOCK, _cache_connect() as connection:
+            row = connection.execute(
+                "SELECT translated FROM translations WHERE cache_key = ?",
+                (_cache_key(segment, target),),
+            ).fetchone()
+        return row[0] if row else ""
+    except sqlite3.Error:
+        return ""
+
+
+def _cache_put(segment: str, target: str, translated: str) -> None:
+    try:
+        with _CACHE_LOCK, _cache_connect() as connection:
+            connection.execute(
+                "INSERT OR REPLACE INTO translations "
+                "(cache_key, source, target, translated) VALUES (?, ?, ?, ?)",
+                (_cache_key(segment, target), segment, target, translated),
+            )
+    except sqlite3.Error as exc:
+        print(f"[Translate] cache write skipped: {exc}")
+
+
+def _throttle() -> None:
+    global _LAST_REQUEST_AT
+    with _REQUEST_LOCK:
+        delay = _REQUEST_INTERVAL - (time.monotonic() - _LAST_REQUEST_AT)
+        if delay > 0:
+            time.sleep(delay)
+        _LAST_REQUEST_AT = time.monotonic()
+
+
+def _translate_clients5(segment: str, target: str) -> str:
+    response = _SESSION.get(
+        "https://clients5.google.com/translate_a/t",
+        params={"client": "dict-chrome-ex", "sl": "auto", "tl": target, "q": segment},
+        timeout=20,
+    )
+    response.raise_for_status()
+    data = response.json()
+    if isinstance(data, list):
+        translated = "".join(part for part in data if isinstance(part, str)).strip()
+        if translated:
+            return translated
+    raise TranslationError("clients5 returned an unexpected response")
+
+
+def _translate_mobile(segment: str, target: str) -> str:
+    response = _SESSION.get(
+        "https://translate.google.com/m",
+        params={"sl": "auto", "tl": target, "q": segment},
+        timeout=20,
+    )
+    response.raise_for_status()
+    result = BeautifulSoup(response.text, "html.parser").select_one(".result-container")
+    translated = result.get_text(" ", strip=True) if result else ""
+    if translated:
+        return translated
+    raise TranslationError("mobile translator returned no result")
+
+
 def _translate_one_segment(segment: str, target: str) -> str:
-    """
-    翻译单段；单段失败时返回原文。
-    """
     segment = (segment or "").strip()
     if not segment:
         return segment
 
-    try:
-        url = "https://translate.googleapis.com/translate_a/single"
-        params = {
-            "client": "gtx",
-            "sl": "auto",
-            "tl": target,
-            "dt": "t",
-            "q": segment,
-        }
-        r = requests.get(url, params=params, timeout=15)
-        r.raise_for_status()
-        data = r.json()
-        translated = "".join(item[0] for item in data[0] if item and item[0])
-        return translated or segment
-    except Exception as e:
-        # 单段失败：保留该段原文
-        print("翻译段失败:", e)
-        return segment
+    cached = _cache_get(segment, target)
+    if cached:
+        return cached
+
+    errors: list[str] = []
+    providers = (_translate_clients5, _translate_mobile)
+    for attempt in range(_MAX_ATTEMPTS):
+        for provider in providers:
+            try:
+                _throttle()
+                translated = provider(segment, target)
+                if translated and translated.strip() != segment:
+                    _cache_put(segment, target, translated)
+                    return translated
+                errors.append(f"{provider.__name__}: unchanged response")
+            except Exception as exc:
+                errors.append(f"{provider.__name__}: {exc}")
+        if attempt + 1 < _MAX_ATTEMPTS:
+            time.sleep(min(8.0, 1.5 * (2**attempt)))
+
+    raise TranslationError("; ".join(errors[-4:]))
 
 
 def _summary_fallback(summary: str, min_len: int = _MIN_SUMMARY_CHARS) -> str:
-    """
-    summary 为空或过短时，从其“前段内容”取 2-3 段作为可翻译摘要。
-    （由于当前 monitor 返回字段只有 summary，不含正文全文，这里基于 summary 自身前段切分兜底。）
-    """
-    s = (summary or "").strip()
-    if not s:
-        return s
-    if len(s) >= min_len:
-        return s
-
-    segments = _split_for_translation(s)
-    lead = [x for x in segments[:3] if x.strip()]
-    if not lead:
-        return s
-    return "".join(lead)
+    value = (summary or "").strip()
+    if not value or len(value) >= min_len:
+        return value
+    segments = _split_for_translation(value)
+    return "".join(segments[:3]) or value
 
 
 def translate_text(text, target=_DEFAULT_TARGET):
-    """
-    对长文本做分段翻译，再拼接；单段翻译失败时只保留该段原文。
-    """
     if not text:
         return text
-
-    # 过短：也走同一套逻辑，减少行为差异
     segments = _split_for_translation(str(text))
     if not segments:
         return text
-
-    translated_parts: list[str] = []
-    for seg in segments:
-        translated_parts.append(_translate_one_segment(seg, target=target))
-    return "".join(translated_parts) or text
+    return "".join(_translate_one_segment(segment, target) for segment in segments)
 
 
 def translate_summary_if_needed(summary: str, min_len: int = _MIN_SUMMARY_CHARS) -> str:
-    """
-    给 main_monitor 作为摘要兜底使用：summary 为空或太短时返回兜底摘要候选。
-    """
     return _summary_fallback(summary, min_len=min_len)
