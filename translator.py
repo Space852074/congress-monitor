@@ -17,7 +17,10 @@ _DEFAULT_TARGET = "zh-CN"
 _MAX_SEGMENT_CHARS = 400
 _MIN_SUMMARY_CHARS = 80
 _REQUEST_INTERVAL = float(os.getenv("TRANSLATION_REQUEST_INTERVAL", "0.45"))
-_MAX_ATTEMPTS = max(1, int(os.getenv("TRANSLATION_MAX_ATTEMPTS", "3")))
+_MAX_ATTEMPTS = max(1, int(os.getenv("TRANSLATION_MAX_ATTEMPTS", "2")))
+_PROVIDER_COOLDOWN_SECONDS = max(
+    60.0, float(os.getenv("TRANSLATION_PROVIDER_COOLDOWN", "900"))
+)
 _CACHE_PATH = Path(
     os.getenv(
         "CONGRESS_TRANSLATION_CACHE",
@@ -37,7 +40,9 @@ _SESSION.headers.update(
 )
 _REQUEST_LOCK = threading.Lock()
 _CACHE_LOCK = threading.Lock()
+_PROVIDER_STATE_LOCK = threading.Lock()
 _LAST_REQUEST_AT = 0.0
+_PROVIDER_DISABLED_UNTIL: dict[str, float] = {}
 
 
 class TranslationError(RuntimeError):
@@ -142,6 +147,40 @@ def _translate_clients5(segment: str, target: str) -> str:
     raise TranslationError("clients5 returned an unexpected response")
 
 
+def _translate_translate_com(segment: str, target: str) -> str:
+    target_code = "zh" if target.lower().startswith("zh") else target
+    response = _SESSION.post(
+        "https://www.translate.com/translator/ajax_translate",
+        data={
+            "text_to_translate": segment,
+            "source_lang": "en",
+            "translated_lang": target_code,
+            "use_cache_only": "false",
+        },
+        timeout=25,
+    )
+    response.raise_for_status()
+    data = response.json()
+    translated = str(data.get("translated_text") or "").strip()
+    if data.get("result") == "success" and translated:
+        return translated
+    raise TranslationError("translate.com returned no translation")
+
+
+def _translate_mymemory(segment: str, target: str) -> str:
+    response = _SESSION.get(
+        "https://api.mymemory.translated.net/get",
+        params={"q": segment, "langpair": f"en|{target}"},
+        timeout=25,
+    )
+    response.raise_for_status()
+    data = response.json()
+    translated = str((data.get("responseData") or {}).get("translatedText") or "").strip()
+    if data.get("responseStatus") == 200 and not data.get("quotaFinished") and translated:
+        return translated
+    raise TranslationError("MyMemory quota exhausted or no translation returned")
+
+
 def _translate_mobile(segment: str, target: str) -> str:
     response = _SESSION.get(
         "https://translate.google.com/m",
@@ -156,6 +195,27 @@ def _translate_mobile(segment: str, target: str) -> str:
     raise TranslationError("mobile translator returned no result")
 
 
+def _provider_available(provider) -> bool:
+    with _PROVIDER_STATE_LOCK:
+        return time.monotonic() >= _PROVIDER_DISABLED_UNTIL.get(provider.__name__, 0.0)
+
+
+def _disable_provider(provider) -> None:
+    with _PROVIDER_STATE_LOCK:
+        _PROVIDER_DISABLED_UNTIL[provider.__name__] = (
+            time.monotonic() + _PROVIDER_COOLDOWN_SECONDS
+        )
+
+
+def _short_error(provider, exc: Exception) -> str:
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        return f"{provider.__name__}: HTTP {exc.response.status_code}"
+    message = " ".join(str(exc).split())
+    if "http://" in message or "https://" in message:
+        message = message.split("http", 1)[0].rstrip(" :")
+    return f"{provider.__name__}: {type(exc).__name__}: {message[:160]}"
+
+
 def _translate_one_segment(segment: str, target: str) -> str:
     segment = (segment or "").strip()
     if not segment:
@@ -166,9 +226,16 @@ def _translate_one_segment(segment: str, target: str) -> str:
         return cached
 
     errors: list[str] = []
-    providers = (_translate_clients5, _translate_mobile)
+    providers = (
+        _translate_translate_com,
+        _translate_mymemory,
+        _translate_clients5,
+        _translate_mobile,
+    )
     for attempt in range(_MAX_ATTEMPTS):
         for provider in providers:
+            if not _provider_available(provider):
+                continue
             try:
                 _throttle()
                 translated = provider(segment, target)
@@ -185,7 +252,14 @@ def _translate_one_segment(segment: str, target: str) -> str:
                     return translated
                 errors.append(f"{provider.__name__}: unchanged response")
             except Exception as exc:
-                errors.append(f"{provider.__name__}: {exc}")
+                errors.append(_short_error(provider, exc))
+                status_code = (
+                    exc.response.status_code
+                    if isinstance(exc, requests.HTTPError) and exc.response is not None
+                    else None
+                )
+                if status_code in {401, 403, 429}:
+                    _disable_provider(provider)
         if attempt + 1 < _MAX_ATTEMPTS:
             time.sleep(min(8.0, 1.5 * (2**attempt)))
 
